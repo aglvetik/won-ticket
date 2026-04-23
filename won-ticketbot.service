@@ -1,0 +1,22 @@
+[Unit]
+Description=WON Discord Ticket Bot
+After=network.target
+
+[Service]
+Type=simple
+User=wonbot
+Group=wonbot
+WorkingDirectory=/opt/won-ticketbot
+EnvironmentFile=/opt/won-ticketbot/.env
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/opt/won-ticketbot/.venv/bin/python -m app.main
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=30
+KillSignal=SIGINT
+NoNewPrivileges=true
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
