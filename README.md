@@ -39,13 +39,6 @@
 - SQLite (WAL)
 - Статусы: reserved / open / closed
 
-### Сохранено без изменений
-
-- Все ID
-- Роли
-- Кнопки (custom_id)
-- Тексты
-- Логика работы
 ## Project Tree
 
 ```text
