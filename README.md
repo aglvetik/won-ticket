@@ -1,15 +1,52 @@
 # WON Ticket Bot
 
-Полный модульный rebuild Discord ticket bot с сохранением поведения старого `ticket.py`.
+Кастомный тикет-бот для Discord, написан под клан WON (Squad).
 
-Что сохранено:
+Основной упор — заявки в клан: создание тикета → заполнение анкеты → принятие/отклонение → выдача ролей и изменение ника.
 
-- SQLite c `WAL`, `busy_timeout`, `reserved | open | closed` семантикой и уникальным активным тикетом на пользователя.
-- Prefix-команды `!accept`, `!принять`, `!reject`, `!отклонить`.
-- Все Discord ID, роли, категории, custom_id кнопок, тексты, numbering rules, reopen flow, transcript flow и Google Sheets flow.
-- Google Sheets авторизация через файл `credentials.json` по умолчанию.
-- Единственное бизнес-изменение: Google Forms polling пропускает строки до `145` включительно и начинает обработку с `146`.
+## Возможности
 
+- Система тикетов (application / idea / other)
+- Один активный тикет на пользователя
+- Автоматическая нумерация
+
+### Заявки в клан
+
+- Интеграция с Google Forms
+- Отправка анкеты в Discord
+- Кнопки принятия / отклонения
+
+Команды:
+- !accept / !принять
+- !reject / !отклонить
+
+При принятии:
+- Выдача ролей
+- Снятие роли гостя
+- Добавление тега к нику
+
+- Переоткрытие тикетов (до 5 часов)
+- Приватные каналы заметок для персонала
+- Автосохранение транскриптов при удалении тикета
+
+### Google Sheets
+
+- Защита от дублей
+- Обработка заявок
+- Чтение начинается с 146 строки
+
+### База данных
+
+- SQLite (WAL)
+- Статусы: reserved / open / closed
+
+### Сохранено без изменений
+
+- Все ID
+- Роли
+- Кнопки (custom_id)
+- Тексты
+- Логика работы
 ## Project Tree
 
 ```text
@@ -91,84 +128,3 @@
 ├── ticket.py
 └── won-ticketbot.service
 ```
-
-`ticket.py` оставлен как исходный reference-файл старой реализации.
-
-## Configuration
-
-Скопируйте `.env.example` в `.env` и заполните:
-
-```env
-DISCORD_TOKEN=your_discord_bot_token
-DB_PATH=tickets.db
-LOG_LEVEL=INFO
-GOOGLE_CREDENTIALS_FILE=credentials.json
-```
-
-Примечания:
-
-- `GOOGLE_CREDENTIALS_FILE` по умолчанию указывает на `credentials.json`.
-- Можно указать абсолютный путь до файла сервисного аккаунта Google.
-- Если `DB_PATH` относительный, он считается относительно `WorkingDirectory`.
-
-## Local Run
-
-```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-cp .env.example .env
-python -m app.main
-```
-
-## Tests
-
-```bash
-pytest -q
-```
-
-Покрыты:
-
-- numbering seed/scan logic
-- SQLite repository semantics
-- form signature dedup
-- cleanup semantics
-- reopen window
-- accept-role/nickname flow
-
-## Deploy On Ubuntu/Debian
-
-Пример production-раскладки:
-
-```bash
-sudo useradd --system --home /opt/won-ticketbot --shell /usr/sbin/nologin wonbot
-sudo mkdir -p /opt/won-ticketbot
-sudo chown -R wonbot:wonbot /opt/won-ticketbot
-```
-
-Далее:
-
-```bash
-sudo -u wonbot python3 -m venv /opt/won-ticketbot/.venv
-sudo -u wonbot /opt/won-ticketbot/.venv/bin/pip install -r /opt/won-ticketbot/requirements.txt
-sudo -u wonbot cp /opt/won-ticketbot/.env.example /opt/won-ticketbot/.env
-```
-
-Положите `credentials.json` в `/opt/won-ticketbot/` или пропишите абсолютный путь в `.env`.
-
-Установка сервиса:
-
-```bash
-sudo cp won-ticketbot.service /etc/systemd/system/won-ticketbot.service
-sudo systemctl daemon-reload
-sudo systemctl enable won-ticketbot
-sudo systemctl start won-ticketbot
-sudo systemctl status won-ticketbot
-```
-
-## Service Notes
-
-- `EnvironmentFile` читается из `/opt/won-ticketbot/.env`
-- бот стартует через `/opt/won-ticketbot/.venv/bin/python -m app.main`
-- рабочая директория сервиса: `/opt/won-ticketbot`
-- при падении сервис автоматически перезапускается
